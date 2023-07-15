@@ -13,6 +13,14 @@ movies = [
 		"year": "2009",
 		"rating": 7.8,
 		"category": "Acción"
+	},
+    {
+		"id": 2,
+		"title": "Avatar",
+		"overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
+		"year": "2009",
+		"rating": 7.8,
+		"category": "Acción"
 	}
 ]
 
@@ -23,3 +31,11 @@ def message():
 @app.get(path='/movies', tags=['Movies'])
 def get_movies():
     return movies
+
+@app.get(path='/movies/{id}', tags=['Movies'])
+def get_movie(id: int):
+    for item in movies:
+        if item['id'] == id:
+            return item
+        
+    return []
