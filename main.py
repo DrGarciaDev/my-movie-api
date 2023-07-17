@@ -39,3 +39,7 @@ def get_movie(id: int):
             return item
         
     return []
+
+@app.get(path='/movies/', tags=['Movies'])
+def get_movies_by_category(category: str, year: int):
+    return category
