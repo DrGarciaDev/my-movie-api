@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 # modulos locales
-from jwt_manager import create_token
 from config.database import engine, Base
 from middlewares.error_handler import ErrorHandler
 from routers.movie_router import movie_router

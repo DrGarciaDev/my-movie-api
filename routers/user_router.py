@@ -4,7 +4,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 # modulos locales 
-from jwt_manager import create_token
+from utils.jwt_manager import create_token
 from schemas.user_schema import User
 
 

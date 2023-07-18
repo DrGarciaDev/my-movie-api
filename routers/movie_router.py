@@ -63,12 +63,11 @@ def update_movie(id:  int, movie: Movie) -> dict:
 @movie_router.delete(path='/movies/{id}', tags=['Movies'], response_model=dict, status_code=status.HTTP_200_OK)
 def delete_movie(id: int) -> dict:
     db = Session()
-    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+    registro = MovieService(db=db).get_movie(id=id)
 
     if not registro:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
 
-    db.delete(registro)
-    db.commit()
+    MovieService(db=db).delete_movie(id=id)
     
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "La pelicula se ha eliminado"})
