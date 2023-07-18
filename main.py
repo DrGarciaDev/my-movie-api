@@ -3,16 +3,20 @@ from typing import Optional, List
 from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
-from fastapi.security.http import HTTPAuthorizationCredentials
 
 from pydantic import BaseModel, Field
 from starlette.requests import Request
 
+# modulos locales
 from jwt_manager import create_token, validate_token
+from config.database import Session, engine, Base
+from models.movie import Movie
 
 app = FastAPI()
 app.title = 'Mi app con FastAPI'
 app.version = '0.0.1'
+
+Base.metadata.create_all(bind=engine)
 
 class JWTBearer(HTTPBearer):
     async def __call__(self, request: Request):
