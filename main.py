@@ -100,9 +100,10 @@ def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
 
 @app.get(path='/movies/', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
 def get_movies_by_category(category: str = Query(min_length=5, max_length=15)) -> List[Movie]:
-    data = [ item for item in movies if item['category'] == category ]
-    
-    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+    db = Session()
+    registros = db.query(MovieModel).filter(MovieModel.category == category).all()
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(registros))
 
 @app.post(path='/movies', tags=['Movies'], response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_movie(movie: Movie) -> dict:
@@ -117,20 +118,31 @@ def create_movie(movie: Movie) -> dict:
 
 @app.put(path='/movies/{id}', tags=['Movies'], response_model=dict, status_code=status.HTTP_200_OK)
 def update_movie(id:  int, movie: Movie) -> dict:
-    for item in movies:
-        if item['id'] == id:
-            item['title'] = movie.title
-            item['overview'] = movie.overview
-            item['year'] = movie.year
-            item['category'] = movie.category
-            item['rating'] = movie.rating
+    db = Session()
+    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+
+    if not registro:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
+
+    registro.title = movie.title
+    registro.overview = movie.overview
+    registro.year = movie.year
+    registro.category = movie.category
+    registro.rating = movie.rating
+
+    db.commit()
     
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "La pelicula se ha editado"})
 
 @app.delete(path='/movies/{id}', tags=['Movies'], response_model=dict, status_code=status.HTTP_200_OK)
 def delete_movie(id: int) -> dict:
-    for item in movies:
-        if item['id'] == id:
-            movies.remove(item)
+    db = Session()
+    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+
+    if not registro:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
+
+    db.delete(registro)
+    db.commit()
     
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "La pelicula se ha eliminado"})
