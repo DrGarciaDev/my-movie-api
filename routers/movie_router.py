@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from config.database import Session
 from models.movieModel import MovieModel
 from middlewares.jwt_bearer import JWTBearer
+from services.movie_service import MovieService
 
 
 movie_router = APIRouter()
@@ -39,14 +40,14 @@ class Movie(BaseModel):
 @movie_router.get(path='/movies', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies() -> List[Movie]:
     db = Session()
-    registros = db.query(MovieModel).all()
+    registros = MovieService(db).get_movies()
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(registros))
 
 @movie_router.get(path='/movies/{id}', tags=['Movies'], response_model=Movie, status_code=status.HTTP_200_OK)
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
     db = Session()
-    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+    registro = MovieService(db).get_movie(id=id)
 
     if not registro:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
