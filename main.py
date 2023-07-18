@@ -3,6 +3,7 @@ from typing import Optional, List
 from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
+from fastapi.encoders import jsonable_encoder
 
 from pydantic import BaseModel, Field
 from starlette.requests import Request
@@ -82,15 +83,20 @@ def login(user: User):
 
 @app.get(path='/movies', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies() -> List[Movie]:
-    return JSONResponse(status_code=status.HTTP_200_OK, content=movies)
+    db = Session()
+    registros = db.query(MovieModel).all()
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(registros))
 
 @app.get(path='/movies/{id}', tags=['Movies'], response_model=Movie, status_code=status.HTTP_200_OK)
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
-    for item in movies:
-        if item['id'] == id:
-            return JSONResponse(status_code=status.HTTP_200_OK, content=item)
+    db = Session()
+    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+
+    if not registro:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
         
-    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content=[])
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(registro))
 
 @app.get(path='/movies/', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
 def get_movies_by_category(category: str = Query(min_length=5, max_length=15)) -> List[Movie]:
