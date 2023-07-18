@@ -60,8 +60,10 @@ def message():
 
 @app.post(path='/login', tags=['Auth'])
 def login(user: User):
+    if user.email == 'admin@gmail.com' and user.password == 'admin':
+        token: str = create_token(user.dict())
 
-    return user
+    return JSONResponse(status_code=status.HTTP_200_OK, content=token)
 
 @app.get(path='/movies', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
 def get_movies() -> List[Movie]:
