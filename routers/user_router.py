@@ -5,14 +5,10 @@ from fastapi.responses import JSONResponse
 
 # modulos locales 
 from jwt_manager import create_token
+from schemas.user_schema import User
 
 
 user_router = APIRouter()
-
-class User(BaseModel):
-    email: str
-    password: str 
-
 
 @user_router.post(path='/login', tags=['Auth'])
 def login(user: User):

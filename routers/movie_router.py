@@ -12,30 +12,10 @@ from config.database import Session
 from models.movieModel import MovieModel
 from middlewares.jwt_bearer import JWTBearer
 from services.movie_service import MovieService
+from schemas.movie_schema import Movie
 
 
 movie_router = APIRouter()
-
-class Movie(BaseModel):
-    id: Optional[int] = None
-    title: str = Field(min_length=5, max_length=15)
-    overview: str = Field(min_length=15, max_length=50)
-    year: int = Field(le=2022)
-    rating: float = Field(ge=1, le=10)
-    category: str = Field(min_length=5, max_length=15)
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "id": 1,
-                "title": "Mi pelicula",
-                "overview": "Descripción de la película",
-                "year": 2022, 
-                "rating": 9.8,
-                "category": "Categoría"
-            }
-        }
-
 
 @movie_router.get(path='/movies', tags=['Movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies() -> List[Movie]:
@@ -64,30 +44,20 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=15)) -
 @movie_router.post(path='/movies', tags=['Movies'], response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_movie(movie: Movie) -> dict:
     db = Session()
-    new_movie = MovieModel(**movie.dict())
-    db.add(new_movie)
-    db.commit()
-
-    # movies.movie_routerend(movie)
+    MovieService(db).create_movie(movie=movie)
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "La pelicula se ha registrado"})
 
 @movie_router.put(path='/movies/{id}', tags=['Movies'], response_model=dict, status_code=status.HTTP_200_OK)
 def update_movie(id:  int, movie: Movie) -> dict:
     db = Session()
-    registro = db.query(MovieModel).filter(MovieModel.id == id).first()
+    registro = MovieService(db=db).get_movie(id=id)
 
     if not registro:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "No encontrado"})
 
-    registro.title = movie.title
-    registro.overview = movie.overview
-    registro.year = movie.year
-    registro.category = movie.category
-    registro.rating = movie.rating
+    MovieService(db).update_movie(id=id, data=movie)
 
-    db.commit()
-    
     return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "La pelicula se ha editado"})
 
 @movie_router.delete(path='/movies/{id}', tags=['Movies'], response_model=dict, status_code=status.HTTP_200_OK)
