@@ -10,7 +10,7 @@ from starlette.requests import Request
 # modulos locales
 from jwt_manager import create_token, validate_token
 from config.database import Session, engine, Base
-from models.movie import Movie
+from models.movieModel import MovieModel
 
 app = FastAPI()
 app.title = 'Mi app con FastAPI'
@@ -100,7 +100,12 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=15)) -
 
 @app.post(path='/movies', tags=['Movies'], response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_movie(movie: Movie) -> dict:
-    movies.append(movie)
+    db = Session()
+    new_movie = MovieModel(**movie.dict())
+    db.add(new_movie)
+    db.commit()
+
+    # movies.append(movie)
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "La pelicula se ha registrado"})
 
